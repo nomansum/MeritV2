@@ -5,7 +5,7 @@ class studentPersonalInfo extends StatelessWidget {
   final String studentImagePath;
   final String studentName;
   final String location;
-  final String lessonCount;
+  final int lessonCount;
   final String yearGroup;
 
   const studentPersonalInfo({

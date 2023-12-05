@@ -5,9 +5,9 @@ import 'package:merit_tuition_v1/pages/catchupLessons.dart';
 import 'package:merit_tuition_v1/pages/fees_details.dart';
 import 'package:merit_tuition_v1/pages/lessons_details_page.dart';
 import 'package:merit_tuition_v1/utils/commonAppBar.dart';
-import 'package:merit_tuition_v1/utils/widgets/student_info.dart';
 import 'package:merit_tuition_v1/utils/widgets/student_lessons.dart';
 import 'package:flutter/material.dart';
+import 'package:merit_tuition_v1/utils/widgets/student_personal_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 
@@ -201,7 +201,6 @@ class _StudentProfileState extends State<StudentProfile> {
             studentPersonalInfo(
               size: size,
               studentImagePath: 'assets/parent.png',
-              stdId: widget.studentId,
               studentName: widget.name,
               location: widget.branch,
               lessonCount: lessonCount,
@@ -272,41 +271,62 @@ class _StudentProfileState extends State<StudentProfile> {
         ),
       ),
       endDrawer: Drawer(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.start,
-          crossAxisAlignment: CrossAxisAlignment.center,
+        child: ListView(
           children: [
-            const SizedBox(
-              height: 20,
+            DrawerHeader(
+              child: Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      child: Image.asset('assets/parent.png'),
+                      maxRadius: 50,
+                    ),
+                    Text(
+                      widget.name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             ),
             ListTile(
               onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) =>
-                        FeesDetails(studentId: widget.studentId)));
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => FeesDetails(
+                      studentId: widget.studentId,
+                    ),
+                  ),
+                );
               },
-              leading: Icon(
-                Icons.money,
+              leading: const Icon(
+                Icons.currency_pound,
                 color: primaryColor,
               ),
-              title: Text("Fees"),
-              subtitle: Text(
+              title: const Text("Fees"),
+              subtitle: const Text(
                 "Tab To See Fees Details",
                 style: TextStyle(overflow: TextOverflow.ellipsis),
               ),
             ),
             ListTile(
               onTap: () {
-                Navigator.of(context).push(MaterialPageRoute(
-                    builder: (context) =>
-                        CatchupLesson(studentId: widget.studentId)));
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => CatchupLesson(
+                      studentId: widget.studentId,
+                    ),
+                  ),
+                );
               },
-              leading: Icon(
+              leading: const Icon(
                 Icons.book_sharp,
                 color: primaryColor,
               ),
-              title: Text("Catch Up Lesson"),
-              subtitle: Text(
+              title: const Text("Catch Up Lesson"),
+              subtitle: const Text(
                 "Tab For Adding a Future Lesson",
                 style: TextStyle(overflow: TextOverflow.ellipsis),
               ),
