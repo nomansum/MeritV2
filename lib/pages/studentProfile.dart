@@ -10,6 +10,7 @@ import 'package:flutter/material.dart';
 import 'package:merit_tuition_v1/utils/widgets/student_personal_info.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
 class StudentProfile extends StatefulWidget {
   final dynamic studentId;
@@ -17,6 +18,7 @@ class StudentProfile extends StatefulWidget {
   final dynamic email;
   final dynamic branch;
   final dynamic yearGroup;
+
   const StudentProfile({
     required this.studentId,
     required this.name,
@@ -54,7 +56,7 @@ class _StudentProfileState extends State<StudentProfile> {
   }
 
   Future<void> _getHomework(lessonId) async {
-    print(widget.studentId);
+    // print("hi + " + widget.studentId);
     setState(() {
       homeworkLoading = true;
     });
@@ -62,40 +64,59 @@ class _StudentProfileState extends State<StudentProfile> {
     final SharedPreferences sharedPreferences =
         await SharedPreferences.getInstance();
     var token = sharedPreferences.getString('token');
-    var url = Uri.parse(
-        'http://35.176.201.155/api/homework/${widget.studentId}/$lessonId');
-    http.Response response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Token $token', // Add the authorization header
-      },
+    // var url = Uri.parse(
+    //     'http://35.176.201.155/api/homework/${widget.studentId}/$lessonId');
+    // print("hello + " + lessonId + widget.studentId);
+    BaseOptions options = BaseOptions(
+      receiveDataWhenStatusError: true,
+      connectTimeout: const Duration(minutes: 1), // 60 seconds
+      receiveTimeout: const Duration(minutes: 1), // 60 seconds
     );
+    final dio = Dio(options);
+    try {
+      final response = await dio.get(
+        'http://35.176.201.155/api/homework/${widget.studentId}/$lessonId',
+        options: Options(
+          headers: {
+            'Authorization': 'Token $token', // Add the authorization header
+          },
+        ),
+      );
 
-    if (response.statusCode == 200) {
-      try {
-        dynamic result = jsonDecode(response.body);
-        print(result);
+      if (response.statusCode == 200) {
+        try {
+          dynamic result = jsonDecode(response.data);
+          print(result);
 
-        setState(() {
-          homeworks = result;
-          homeworkCount = result.length;
-          homeworkLoading = false;
-        });
-      } catch (e) {
-        print(response);
+          setState(() {
+            homeworks = result;
+            homeworkCount = result.length;
+            homeworkLoading = false;
+          });
+        } catch (e) {
+          print(response);
+        }
+        return;
+      } else {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Something went wrong,please try again'),
+          backgroundColor: Colors.red,
+        ));
       }
-      return;
-    } else {
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Something went wrong,please try again'),
-        backgroundColor: Colors.red,
-      ));
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout) {
+        lessonLoading = false;
+        print("Connection Timeout\n ${e.message}");
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        lessonLoading = false;
+        print(e.message);
+      }
     }
   }
 
   Future<void> _getLessonDetails() async {
-    print(widget.studentId);
+    print("hello " + widget.studentId.toString());
     setState(() {
       lessonLoading = true;
     });
@@ -103,46 +124,88 @@ class _StudentProfileState extends State<StudentProfile> {
     final SharedPreferences sharedPreferences =
         await SharedPreferences.getInstance();
     var token = sharedPreferences.getString('token');
-    var url = Uri.parse(
-        'http://35.176.201.155/api/student-lessons/${widget.studentId}');
-    http.Response response = await http.get(
-      url,
-      headers: {
-        'Authorization': 'Token $token', // Add the authorization header
-      },
+    // var url = Uri.parse(
+    //     'http://35.176.201.155/api/student-lessons/${widget.studentId}');
+
+    BaseOptions options = BaseOptions(
+      receiveDataWhenStatusError: true,
+      connectTimeout: const Duration(seconds: 30), // 60 seconds
+      receiveTimeout: const Duration(seconds: 30), // 60 seconds
     );
-
-    if (response.statusCode == 200) {
-      try {
-        dynamic result = jsonDecode(response.body);
-        print(result);
-        var lessonDetails = [];
-        for (int i = 0; i < result.length; i++) {
-          lessonDetails.add(result[i]['lesson']);
-        }
-
-        setState(() {
-          lessonCount = result.length;
-          lessons = lessonDetails;
-          selectedLessonId = result[0]['lesson']['id'];
-          if (lessonCount <= 0) {
-            feedbackCount = 0;
-            homeworkCount = 0;
-          }
-          lessonLoading = false;
-        });
-      } catch (e) {
-        print(response);
-      }
-      return;
-    } else {
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Something went wrong,please try again'),
-          backgroundColor: Colors.red,
+    final dio = Dio(options);
+    try {
+      final response = await dio.get(
+        'http://35.176.201.155/api/student-lessons/${widget.studentId}',
+        options: Options(
+          headers: {
+            'Authorization': 'Token $token', // Add the authorization header
+          },
         ),
       );
+      print("My Response ${response.data.length}");
+      print("response statuse: " + response.statusCode.toString());
+      if (response.statusCode == 200) {
+        try {
+          print("hello try");
+
+          final result = response.data;
+          print("My Response ${result.length}");
+          if (result.length == 0) {
+            setState(() {
+              lessonLoading = false;
+            });
+          }
+          var lessonDetails = [];
+          for (int i = 0; i < result.length; i++) {
+            lessonDetails.add(result[i]['lesson']);
+          }
+          print(lessonDetails);
+          // lessonDetails.add(result);
+
+          setState(() {
+            lessonCount = lessonDetails.length;
+            lessons = lessonDetails;
+            selectedLessonId = result[0]['lesson']['id'];
+            if (lessonCount <= 0) {
+              feedbackCount = 0;
+              homeworkCount = 0;
+            }
+            lessonLoading = false;
+          });
+        } catch (e) {
+          print(response);
+        }
+      } else {
+        // ignore: use_build_context_synchronously
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Something went wrong,please try again'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } on DioException catch (e) {
+      if (e.type == DioExceptionType.connectionTimeout) {
+        lessonLoading = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Something went wrong,please try again'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        print("Connection Timeout\n ${e.message}");
+        // throw(e);
+      } else if (e.type == DioExceptionType.receiveTimeout) {
+        lessonLoading = false;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Something went wrong,please try again'),
+            backgroundColor: Colors.red,
+          ),
+        );
+        print("hello" + e.message.toString());
+        // throw(e);
+      }
     }
   }
 
@@ -167,8 +230,6 @@ class _StudentProfileState extends State<StudentProfile> {
     if (response.statusCode == 200) {
       try {
         dynamic result = jsonDecode(response.body);
-        print("feedback:");
-        print(result);
 
         setState(() {
           feedbacks = result;
@@ -223,7 +284,11 @@ class _StudentProfileState extends State<StudentProfile> {
                 ? const Center(child: CircularProgressIndicator())
                 : lessonCount <= 0
                     ? const Center(
-                        child: Text("No Lessons found"),
+                        child: Text(
+                          "No Lessons found",
+                          style: const TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
                       )
                     : Expanded(
                         child: ListView.separated(
