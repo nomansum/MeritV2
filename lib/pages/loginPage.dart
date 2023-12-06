@@ -72,6 +72,7 @@ class _LoginPageState extends State<LoginPage> {
         final SharedPreferences sharedPreferences =
             await SharedPreferences.getInstance();
         sharedPreferences.setString('token', result['response']);
+        sharedPreferences.setString('userType', widget.userType);
         // ignore: use_build_context_synchronously
         Navigator.push(
           context,
