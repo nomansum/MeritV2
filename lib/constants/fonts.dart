@@ -1,0 +1,1 @@
+const primaryFontFamily = 'Manrope';
