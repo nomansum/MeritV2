@@ -7,6 +7,7 @@ import 'package:merit_tuition_v1/constants/colors.dart';
 import 'package:merit_tuition_v1/constants/icons.dart';
 import 'package:merit_tuition_v1/constants/text.dart';
 import 'package:merit_tuition_v1/pages/addStudentByParent.dart';
+import 'package:merit_tuition_v1/pages/parents_profile.dart';
 import 'package:merit_tuition_v1/utils/svg_to_icon.dart';
 import 'package:merit_tuition_v1/utils/widgets/parent_appbar.dart';
 import 'package:merit_tuition_v1/utils/widgets/parents_bottom_navbar.dart';
@@ -113,15 +114,53 @@ class _ParentsHomeState extends State<ParentsHome> {
         ),
       ),
       drawer: Drawer(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.end,
+        child: ListView(
           children: [
+            DrawerHeader(
+              child: Center(
+                child: Column(
+                  children: [
+                    CircleAvatar(
+                      child: Image.asset('assets/parent.png'),
+                      maxRadius: 50,
+                    ),
+                    Text(
+                      //widget.name,
+                      name,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
             ListTile(
-              leading: Icon(
+              onTap: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(
+                    builder: (context) => const ParentProfile(),
+                  ),
+                );
+              },
+              leading: const Icon(
+                Icons.person,
+                size: 50,
+                color: primaryColor,
+              ),
+              title: const Text("Profile"),
+              subtitle: const Text(
+                "Tap To See Profile Details",
+                style: TextStyle(overflow: TextOverflow.ellipsis),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(
                 Icons.logout,
                 color: Colors.red,
+                size: 40,
               ),
-              title: Text("LogOut"),
+              title: const Text("LogOut"),
               onTap: () {
                 _logOut();
               },

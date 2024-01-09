@@ -86,9 +86,12 @@ class _LoginPageState extends State<LoginPage> {
       }
       return;
     } else {
-      // ignore: use_build_context_synchronously
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-        content: Text('Something went wrong,please try again'),
+      // ignore: use_build_context_synchrono
+      // prinusly
+      Map<String, dynamic> result = jsonDecode(response.body);
+
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(result['response']),
         backgroundColor: Colors.red,
       ));
     }

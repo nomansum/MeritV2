@@ -279,8 +279,6 @@ class _AddStudentPageState extends State<AddStudentPage> {
                         header: "Levels",
                         onChanged: (value) {
                           levelValue = value;
-                          print("INSIDE ADD STU BY PAR@");
-                          print(levelValue);
                         },
                         data: levels!),
                 schools == null

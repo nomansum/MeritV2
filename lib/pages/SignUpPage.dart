@@ -7,6 +7,7 @@ import 'package:http/http.dart' as http;
 import 'package:merit_tuition_v1/pages/UserType.dart';
 import 'package:merit_tuition_v1/pages/loginPage.dart';
 import 'package:merit_tuition_v1/utils/modifiedTextFieldForDate.dart';
+import 'package:merit_tuition_v1/utils/widgets/custom_dropdown_button.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:merit_tuition_v1/constants/textstyles.dart';
 import 'package:merit_tuition_v1/utils/modifiedTextField.dart';
@@ -83,6 +84,7 @@ class _SignUpPageState extends State<SignUpPage> {
     "Poldek Ltd, 20 B The Warren, , , , London, "
   ];
 
+  List<String> users = ['Teacher', 'Parent'];
   Future<void> _login() async {
     // Simulated authentication logic - Replace with actual authentication
     final String password = _passwordController.text;
@@ -90,8 +92,11 @@ class _SignUpPageState extends State<SignUpPage> {
     final String lastname = _lastNameController.text;
     final String name = firstName + " " + lastname;
     final String email = _emailController.text;
-    List<String> dateOfBirth =
-        _dobController.text.toString().split(' ')[0].split('-');
+    print("SIGN UP TILL HERE");
+
+    List<String> dateOfBirth = _dobController.text.toString().split('-');
+    print(dateOfBirth);
+
     final String dob =
         dateOfBirth[2] + "-" + dateOfBirth[1] + "-" + dateOfBirth[0];
     final String phone = _phoneController.text;
@@ -101,10 +106,9 @@ class _SignUpPageState extends State<SignUpPage> {
     final String relationShip = _relationshipController.text;
     final String profession = _profController.text;
     final String designation = _designationController.text;
-    final String userType = _userTypeController.text;
+    final String userType = _userTypeController.text.toLowerCase();
     final String referCode = _referCodeController.text;
     DateTime dobDate = DateTime.now();
-
     var url = Uri.parse('http://35.176.201.155/api/sign-up');
     http.Response response = await http.post(url, body: {
       'email': email,
@@ -122,7 +126,6 @@ class _SignUpPageState extends State<SignUpPage> {
       'userType': userType,
       'refer_code': referCode
     });
-
     if (response.statusCode == 200) {
       try {
         Map<String, dynamic> result = jsonDecode(response.body);
@@ -152,6 +155,13 @@ class _SignUpPageState extends State<SignUpPage> {
         backgroundColor: Colors.red,
       ));
     }
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+    _userTypeController.text = "Teacher";
   }
 
   @override
@@ -282,6 +292,9 @@ class _SignUpPageState extends State<SignUpPage> {
                               monthName +
                               " " +
                               dobDate.toString().split(" ")[0].split("-")[0];
+
+                          print("DOBCONTROLLER " + _dobController.text);
+                          print("DOBDATE " + dobDate.toString().split(" ")[0]);
                         });
                       },
                     ));
@@ -318,12 +331,13 @@ class _SignUpPageState extends State<SignUpPage> {
                   obscureText: false,
                   header: 'Designation',
                 ),
-                ModifiedTextField(
-                  icon: const Icon(Icons.verified_user),
-                  controller: _userTypeController,
-                  obscureText: false,
-                  header: 'User type',
-                ),
+
+                CustomDropDownList(
+                    header: "User-Type",
+                    onChanged: (value) {
+                      _userTypeController.text = value;
+                    },
+                    data: users),
                 ModifiedTextField(
                   icon: const Icon(Icons.room_preferences),
                   controller: _referCodeController,
@@ -337,7 +351,10 @@ class _SignUpPageState extends State<SignUpPage> {
                   height: screenHeight / 15,
                   //  heightFactor: 1.0,
                   child: ElevatedButton(
-                    onPressed: _login,
+                    onPressed: () {
+                      _dobController.text = dobDate.toString().split(" ")[0];
+                      _login();
+                    },
                     style: ElevatedButton.styleFrom(
                       primary:
                           const Color(0xFF3AD4E1), // Background color (#3AD4E1)
